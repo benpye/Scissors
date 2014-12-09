@@ -22,6 +22,9 @@ namespace Scissors
                 IntPtr.Zero,
                 FatalFunction
                 );
+
+            if (_ctx == IntPtr.Zero)
+                throw new Exception("Could not initialize duktape heap");
         }
 
         // Memory allocation functions
