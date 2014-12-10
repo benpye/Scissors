@@ -36,16 +36,27 @@ namespace Scissors.Hello
             return 1;
         }
 
+        static double Add(double a, double b)
+        {
+            return a + b;
+        }
+
+        static void Print(string str)
+        {
+            Console.WriteLine("Printing: \{str}");
+        }
+
         static void Main(string[] args)
         {
             var e = new Engine();
             var ctx = e._ctx;
 
             var code = MarshalString("print('Hello world!');");
-            var code2 = MarshalString("print('2+3=' + mod.addder(2, 3));");
+            var code2 = MarshalString("mod.printer('2+3=' + mod.adder(2, 3));");
             var file = MarshalString("Program.cs");
             var mod = MarshalString("mod");
             var adder = MarshalString("adder");
+            var printer = MarshalString("printer");
 
             duk_push_string(ctx, file);
             duk_eval_raw(ctx, code, UIntPtr.Zero, CompileFlag.Eval | CompileFlag.NoSource | CompileFlag.StrLen);
@@ -53,7 +64,8 @@ namespace Scissors.Hello
             duk_push_global_object(ctx);
             duk_push_object(ctx);
             FunctionListEntry[] fs = new FunctionListEntry[] {
-                new FunctionListEntry() { Key = adder, Value = Adder, NArgs = (int)(-1) },
+                new FunctionListEntry() { Key = adder, Value = e.WrapMethod(new Func<double, double, double>(Add)), NArgs = 2 },
+                new FunctionListEntry() { Key = printer, Value = e.WrapMethod(new Action<string>(Print)), NArgs = 1 },
                 new FunctionListEntry() { Key = IntPtr.Zero, Value = null, NArgs = 0 }
             };
             duk_put_function_list(ctx, -1, fs);

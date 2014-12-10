@@ -56,6 +56,76 @@ namespace Scissors
             throw new FatalEngineException(str, code);
         }
 
+        private object MarshalArgument(Type t, int i)
+        {
+            if (t == typeof(bool))
+                return (object)duk_require_boolean(_ctx, i);
+            else if (t == typeof(int))
+                return (object)duk_require_int(_ctx, i);
+            else if (t == typeof(double))
+                return (object)duk_require_number(_ctx, i);
+            else if (t == typeof(string))
+                return (object)MarshalHelper.NativeToUTF8(
+                    duk_require_string(_ctx, i));
+            else if (t == typeof(uint))
+                return (object)duk_require_uint(_ctx, i);
+            else
+                throw new NotImplementedException("No support for custom types.");
+        }
+
+        private int MarshalReturn(object o)
+        {
+            if (o == null)
+                return 0;
+
+            Type t = o.GetType();
+
+            if (t == typeof(bool))
+                duk_push_boolean(_ctx, (bool)o);
+            else if (t == typeof(int))
+                duk_push_int(_ctx, (int)o);
+            else if (t == typeof(double))
+                duk_push_number(_ctx, (double)o);
+            else if (t == typeof(string))
+            {
+                var str = MarshalHelper.UTF8ToNative((string)o);
+                duk_push_string(_ctx, str);
+                Marshal.FreeHGlobal(str);
+            }
+            else if (t == typeof(uint))
+                duk_push_uint(_ctx, (uint)o);
+            else
+                throw new NotImplementedException("No support for custom types.");
+
+            return 1;
+        }
+
+        // TODO: Investigate if doing this at runtime is sufficient or if we
+        //       need to emit IL to do this at bind time
+        //       IL generation is harder to maintain but likely faster
+
+        public CFunction WrapMethod(Delegate method)
+        {
+            return new CFunction((IntPtr ctx) =>
+            {
+                // Args are pushed onto the stack in reverse
+                var args = method.Method.GetParameters();
+                object[] callArgs = new object[args.Length];
+                int i = 0;
+                foreach (var arg in args)
+                {
+                    callArgs[i] = MarshalArgument(arg.ParameterType,
+                        args.Length - 1 - i);
+
+                    i++;
+                }
+
+                object ret = method.DynamicInvoke(callArgs);
+
+                return MarshalReturn(ret);
+            });
+        }
+
         #region IDisposable Support
         private bool _disposedValue = false; // To detect redundant calls
 

@@ -15,7 +15,7 @@ namespace Scissors
     // We assume that duktape's duk_int_t and duk_small_int_t are both 32 bits
     // 32 vs 64 bit can be managed by using IntPtr and UIntPtr
 
-    public enum Type : int
+    public enum JSType : int
     {
         None = 0,
         Undefined = 1,
@@ -116,6 +116,13 @@ namespace Scissors
 
     public static class NativeMethods
     {
+        // These methods don't exactly cover the public API, for some methods
+        // there is no way they can be marshalled, for others the header
+        // uses a macro to map the API to another function. Where this is done
+        // the function here is typically suffixed _raw and is the function
+        // used for several variants of a function, we have to refer to
+        // the header to see how this is used
+
         private const string DLLNAME = "duktape.dll";
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -372,7 +379,7 @@ namespace Scissors
         public static extern int duk_push_thread_raw(IntPtr ctx, ThreadFlag flags);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int duk_push_error_object_raw(IntPtr ctx, int err_code, IntPtr filename, int line, IntPtr fmt, __arglist);
+        public static extern int duk_push_error_object_raw(IntPtr ctx, ErrorCode err_code, IntPtr filename, int line, IntPtr fmt, __arglist);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr duk_push_buffer(IntPtr ctx, UIntPtr size, bool dynamic);
@@ -400,10 +407,10 @@ namespace Scissors
         // Type checks
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern Type duk_get_type(IntPtr ctx, int index);
+        public static extern JSType duk_get_type(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool duk_check_type(IntPtr ctx, int index, Type type);
+        public static extern bool duk_check_type(IntPtr ctx, int index, JSType type);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern TypeMask duk_get_type_mask(IntPtr ctx, int index);
