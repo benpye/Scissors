@@ -11,16 +11,6 @@ namespace Scissors.Hello
 {
     class Program
     {
-        public static IntPtr MarshalString(string str)
-        {
-            var bytes = Encoding.UTF8.GetBytes(str);
-            Array.Resize(ref bytes, bytes.Length + 1);
-            bytes[bytes.Length - 1] = 0;
-            var ptr = Marshal.AllocHGlobal(bytes.Length);
-            Marshal.Copy(bytes, 0, ptr, bytes.Length);
-            return ptr;
-        }
-
         static int Adder(IntPtr ctx)
         {
             int i;
@@ -51,14 +41,12 @@ namespace Scissors.Hello
             var e = new Engine();
             var ctx = e._ctx;
 
-            var code = MarshalString("print('Hello world!');");
-            var code2 = MarshalString("mod.printer('2+3=' + mod.adder(2, 3));");
-            var file = MarshalString("Program.cs");
-            var mod = MarshalString("mod");
-            var adder = MarshalString("adder");
-            var printer = MarshalString("printer");
+            var code = MarshalHelper.UTF8ToNative("print('Hello world!');");
+            var code2 = MarshalHelper.UTF8ToNative("mod.printer('2+3=' + mod.adder(2, 3));");
+            var adder = MarshalHelper.UTF8ToNative("adder");
+            var printer = MarshalHelper.UTF8ToNative("printer");
 
-            duk_push_string(ctx, file);
+            duk_push_string(ctx, "Program.cs");
             duk_eval_raw(ctx, code, UIntPtr.Zero, CompileFlag.Eval | CompileFlag.NoSource | CompileFlag.StrLen);
 
             duk_push_global_object(ctx);
@@ -69,12 +57,12 @@ namespace Scissors.Hello
                 new FunctionListEntry() { Key = IntPtr.Zero, Value = null, NArgs = 0 }
             };
             duk_put_function_list(ctx, -1, fs);
-            duk_put_prop_string(ctx, -2, mod);
+            duk_put_prop_string(ctx, -2, "mod");
             //duk_push_c_function(ctx, Adder, (int)(-1));
             //duk_put_prop_string(ctx, -2, adder);
             duk_pop(ctx);
 
-            duk_push_string(ctx, file);
+            duk_push_string(ctx, "Program.cs");
             duk_eval_raw(ctx, code2, UIntPtr.Zero, CompileFlag.Eval | CompileFlag.NoSource | CompileFlag.StrLen);
             duk_pop(ctx);
 
@@ -82,8 +70,8 @@ namespace Scissors.Hello
 
             Marshal.FreeHGlobal(code);
             Marshal.FreeHGlobal(code2);
-            Marshal.FreeHGlobal(file);
-            Marshal.FreeHGlobal(mod);
+            Marshal.FreeHGlobal(adder);
+            Marshal.FreeHGlobal(printer);
 
             Console.ReadLine();
         }

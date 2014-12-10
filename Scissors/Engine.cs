@@ -65,8 +65,7 @@ namespace Scissors
             else if (t == typeof(double))
                 return (object)duk_require_number(_ctx, i);
             else if (t == typeof(string))
-                return (object)MarshalHelper.NativeToUTF8(
-                    duk_require_string(_ctx, i));
+                return (object)duk_require_string(_ctx, i);
             else if (t == typeof(uint))
                 return (object)duk_require_uint(_ctx, i);
             else
@@ -87,11 +86,7 @@ namespace Scissors
             else if (t == typeof(double))
                 duk_push_number(_ctx, (double)o);
             else if (t == typeof(string))
-            {
-                var str = MarshalHelper.UTF8ToNative((string)o);
-                duk_push_string(_ctx, str);
-                Marshal.FreeHGlobal(str);
-            }
+                duk_push_string(_ctx, (string)o);
             else if (t == typeof(uint))
                 duk_push_uint(_ctx, (uint)o);
             else

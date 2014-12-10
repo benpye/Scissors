@@ -40,8 +40,8 @@ namespace Scissors
             return MarshalHelper.NativeToUTF8(pNativeData);
         }
 
-        private ICustomMarshaler _marshaler = null;
-        public ICustomMarshaler GetInstance(string cookie)
+        private static ICustomMarshaler _marshaler = null;
+        public static ICustomMarshaler GetInstance(string cookie)
         {
             if (_marshaler == null)
                 _marshaler = new UTF8Marshaler();

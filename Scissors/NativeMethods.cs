@@ -217,10 +217,10 @@ namespace Scissors
 
         // Nasty undocumented hacks to call a vararg
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void duk_error_raw(IntPtr ctx, ErrorCode err_code, IntPtr filename, int line, IntPtr fmt, __arglist);
+        public static extern void duk_error_raw(IntPtr ctx, ErrorCode err_code, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string filename, int line, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string fmt, __arglist);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void duk_fatal(IntPtr ctx, ErrorCode err_code, IntPtr err_msg);
+        public static extern void duk_fatal(IntPtr ctx, ErrorCode err_code, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string err_msg);
 
         // Other state related functions
 
@@ -327,8 +327,10 @@ namespace Scissors
         public static extern void duk_push_uint(IntPtr ctx, uint val);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr duk_push_string(IntPtr ctx, IntPtr str);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
+        public static extern string duk_push_string(IntPtr ctx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string str);
 
+        // TODO: Better way to marshal lstring type methods, do we need them>
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr duk_push_lstring(IntPtr ctx, IntPtr str, UIntPtr size);
 
@@ -336,14 +338,16 @@ namespace Scissors
         public static extern void duk_push_pointer(IntPtr ctx, IntPtr p);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr duk_push_sprintf(IntPtr ctx, IntPtr fmt, __arglist);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
+        public static extern string duk_push_sprintf(IntPtr ctx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string fmt, __arglist);
 
         // Unimplentable, last arg is va_list
         //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         //public static extern IntPtr duk_push_vsprintf(IntPtr ctx, IntPtr fmt, )
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr duk_push_string_file_raw(IntPtr ctx, IntPtr path, StringPushFlag flags);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
+        public static extern string duk_push_string_file_raw(IntPtr ctx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string path, StringPushFlag flags);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern void duk_push_this(IntPtr ctx);
@@ -379,7 +383,7 @@ namespace Scissors
         public static extern int duk_push_thread_raw(IntPtr ctx, ThreadFlag flags);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int duk_push_error_object_raw(IntPtr ctx, ErrorCode err_code, IntPtr filename, int line, IntPtr fmt, __arglist);
+        public static extern int duk_push_error_object_raw(IntPtr ctx, ErrorCode err_code, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string filename, int line, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string fmt, __arglist);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr duk_push_buffer(IntPtr ctx, UIntPtr size, bool dynamic);
@@ -493,7 +497,8 @@ namespace Scissors
         public static extern uint duk_get_uint(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr duk_get_string(IntPtr ctx, int index);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
+        public static extern string duk_get_string(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr duk_get_lstring(IntPtr ctx, int index, UIntPtr out_len);
@@ -534,7 +539,8 @@ namespace Scissors
         public static extern uint duk_require_uint(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr duk_require_string(IntPtr ctx, int index);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
+        public static extern string duk_require_string(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr duk_require_lstring(IntPtr ctx, int index, UIntPtr out_len);
@@ -581,7 +587,8 @@ namespace Scissors
         public static extern UInt16 duk_to_uint16(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr duk_to_string(IntPtr ctx, int index);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
+        public static extern string duk_to_string(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr duk_to_lstring(IntPtr ctx, int index, UIntPtr out_len);
@@ -613,19 +620,22 @@ namespace Scissors
         // Misc conversion
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr duk_base64_encode(IntPtr ctx, int index);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
+        public static extern string duk_base64_encode(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern void duk_base64_decode(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr duk_hex_encode(IntPtr ctx, int index);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
+        public static extern string duk_hex_encode(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern void duk_hex_decode(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr duk_json_encode(IntPtr ctx, int index);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
+        public static extern string duk_json_encode(IntPtr ctx, int index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern void duk_json_decode(IntPtr ctx, int index);
@@ -641,13 +651,13 @@ namespace Scissors
         public static extern bool duk_get_prop(IntPtr ctx, int obj_index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool duk_get_prop_string(IntPtr ctx, int obj_index, IntPtr key);
+        public static extern bool duk_get_prop_string(IntPtr ctx, int obj_index, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string key);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool duk_put_prop(IntPtr ctx, int obj_index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool duk_put_prop_string(IntPtr ctx, int obj_index, IntPtr key);
+        public static extern bool duk_put_prop_string(IntPtr ctx, int obj_index, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string key);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool duk_put_prop_index(IntPtr ctx, int obj_index, uint arr_index);
@@ -656,7 +666,7 @@ namespace Scissors
         public static extern bool duk_del_prop(IntPtr ctx, int obj_index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool duk_del_prop_string(IntPtr ctx, int obj_index, IntPtr key);
+        public static extern bool duk_del_prop_string(IntPtr ctx, int obj_index, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string key);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool duk_del_prop_index(IntPtr ctx, int obj_index, uint arr_index);
@@ -665,16 +675,16 @@ namespace Scissors
         public static extern bool duk_has_prop(IntPtr ctx, int obj_index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool duk_has_prop_string(IntPtr ctx, int obj_index, IntPtr key);
+        public static extern bool duk_has_prop_string(IntPtr ctx, int obj_index, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string key);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool duk_has_prop_index(IntPtr ctx, int obj_index, uint arr_index);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool duk_get_global_string(IntPtr ctx, IntPtr key);
+        public static extern bool duk_get_global_string(IntPtr ctx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string key);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool duk_put_global_string(IntPtr ctx, IntPtr key);
+        public static extern bool duk_put_global_string(IntPtr ctx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string key);
 
         // Object prototype
 
@@ -809,7 +819,7 @@ namespace Scissors
         // Logging
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void duk_log(IntPtr ctx, LogLevel level, IntPtr fmt, __arglist);
+        public static extern void duk_log(IntPtr ctx, LogLevel level, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))] string fmt, __arglist);
 
         // Debugging
 
