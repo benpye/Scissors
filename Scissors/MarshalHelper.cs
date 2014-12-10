@@ -11,7 +11,7 @@ namespace Scissors
     {
         // Marshal.FreeHGlobal must be called after using this function else
         // you will leak memory
-        public static IntPtr UTF8ToNative(string str)
+        public static IntPtr StringToNative(string str)
         {
             if (str == null)
                 return IntPtr.Zero;
@@ -24,7 +24,7 @@ namespace Scissors
             return ptr;
         }
 
-        public static string NativeToUTF8(IntPtr ptr)
+        public static string StringFromNative(IntPtr ptr)
         {
             if (ptr == IntPtr.Zero)
                 return String.Empty;

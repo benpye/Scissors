@@ -32,12 +32,12 @@ namespace Scissors
             else if (!(ManagedObj is string))
                 throw new MarshalDirectiveException("\{nameof(UTF8Marshaler)} must be used on a string.");
 
-            return MarshalHelper.UTF8ToNative(ManagedObj as string);
+            return MarshalHelper.StringToNative(ManagedObj as string);
         }
 
         public object MarshalNativeToManaged(IntPtr pNativeData)
         {
-            return MarshalHelper.NativeToUTF8(pNativeData);
+            return MarshalHelper.StringFromNative(pNativeData);
         }
 
         private static ICustomMarshaler _marshaler = null;

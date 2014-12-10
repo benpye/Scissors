@@ -52,7 +52,7 @@ namespace Scissors
 
         private void FatalFunction(IntPtr ctx, ErrorCode code, IntPtr msg)
         {
-            string str = MarshalHelper.NativeToUTF8(msg);
+            string str = MarshalHelper.StringFromNative(msg);
             throw new FatalEngineException(str, code);
         }
 
@@ -70,6 +70,25 @@ namespace Scissors
                 return (object)duk_require_uint(_ctx, i);
             else
                 throw new NotImplementedException("No support for custom types.");
+        }
+
+        private object MarshalArgument(int i)
+        {
+            var t = duk_get_type(_ctx, i);
+
+            switch(t)
+            {
+                case JSType.Boolean:
+                    return (object)duk_get_boolean(_ctx, i);
+                case JSType.Null:
+                    return null;
+                case JSType.Number:
+                    return (object)duk_get_number(_ctx, i);
+                case JSType.String:
+                    return (object)duk_get_string(_ctx, i);
+                default:
+                    throw new NotImplementedException("JS type not supported");
+            }
         }
 
         private int MarshalReturn(object o)
@@ -105,14 +124,29 @@ namespace Scissors
             {
                 // Args are pushed onto the stack in reverse
                 var args = method.Method.GetParameters();
-                object[] callArgs = new object[args.Length];
-                int i = 0;
-                foreach (var arg in args)
-                {
-                    callArgs[i] = MarshalArgument(arg.ParameterType,
-                        args.Length - 1 - i);
+                bool varArgs = args[args.Length - 1].GetCustomAttributes(
+                    typeof(ParamArrayAttribute), false).Length > 0;
+                int n = args.Length;
+                int varC = varArgs ? duk_get_top(_ctx) : n;
+                object[] callArgs = new object[n];
 
-                    i++;
+                for (int i = 0; i < args.Length; i++)
+                {
+                    // If the last arg in a params method then vararg
+                    if(varArgs && (i+1 == args.Length))
+                    {
+                        object[] pArr = new object[varC - i];
+                        int argN = i;
+                        for (int j = 0; j < pArr.Length; j++)
+                        {
+                            pArr[j] = MarshalArgument(i);
+                            i++;
+                        }
+                        callArgs[argN] = pArr;
+                    }
+                    else
+                        callArgs[i] = MarshalArgument(args[i].ParameterType,
+                            i);
                 }
 
                 object ret = method.DynamicInvoke(callArgs);
