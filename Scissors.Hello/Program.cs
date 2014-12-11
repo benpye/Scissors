@@ -33,7 +33,7 @@ namespace Scissors.Hello
             var ctx = e._ctx;
 
             var code = MarshalHelper.StringToNative("print('Hello world!');");
-            var code2 = MarshalHelper.StringToNative("mod.printer('2+3={0}', mod.adder(2,3));");
+            var code2 = MarshalHelper.StringToNative("mod.printer('2+3={0}', mod.adder(2,3));mod.printer('hi {0}', 0 - 'a');");
             var adder = MarshalHelper.StringToNative("adder");
             var printer = MarshalHelper.StringToNative("printer");
 
@@ -42,6 +42,7 @@ namespace Scissors.Hello
 
             duk_push_global_object(ctx);
             duk_push_object(ctx);
+            // This is likely unsafe our delegates could probably be removed
             FunctionListEntry[] fs = new FunctionListEntry[] {
                 new FunctionListEntry() { Key = adder, Value = e.WrapMethod(new Func<object[], double>(Adder)), NArgs = (int)(-1) },
                 new FunctionListEntry() { Key = printer, Value = e.WrapMethod(new Action<string, object[]>(Print)), NArgs = (int)(-1) },
@@ -53,11 +54,14 @@ namespace Scissors.Hello
             //duk_put_prop_string(ctx, -2, adder);
             duk_pop(ctx);
 
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
             duk_push_string(ctx, "Program.cs");
             duk_eval_raw(ctx, code2, UIntPtr.Zero, CompileFlag.Eval | CompileFlag.NoSource | CompileFlag.StrLen);
             duk_pop(ctx);
 
-            duk_destroy_heap(ctx);
+            e.Dispose();
 
             Marshal.FreeHGlobal(code);
             Marshal.FreeHGlobal(code2);

@@ -13,14 +13,26 @@ namespace Scissors
     {
         public IntPtr _ctx;
 
+        private AllocFunction allocCallback;
+        private ReallocFunction reallocCallback;
+        private FreeFunction freeCallback;
+        private FatalFunction fatalCallback;
+
         public Engine()
         {
+            // Save these else our callbacks get GCd
+
+            allocCallback = AllocateMemory;
+            reallocCallback = ReallocateMemory;
+            freeCallback = FreeMemory;
+            fatalCallback = FatalFunction;
+
             _ctx = duk_create_heap(
-                AllocateMemory,
-                ReallocateMemory,
-                FreeMemory,
+                allocCallback,
+                reallocCallback,
+                freeCallback,
                 IntPtr.Zero,
-                FatalFunction
+                fatalCallback
                 );
 
             if (_ctx == IntPtr.Zero)
@@ -59,15 +71,15 @@ namespace Scissors
         private object MarshalArgument(Type t, int i)
         {
             if (t == typeof(bool))
-                return (object)duk_require_boolean(_ctx, i);
+                return duk_require_boolean(_ctx, i);
             else if (t == typeof(int))
-                return (object)duk_require_int(_ctx, i);
+                return duk_require_int(_ctx, i);
             else if (t == typeof(double))
-                return (object)duk_require_number(_ctx, i);
+                return duk_require_number(_ctx, i);
             else if (t == typeof(string))
-                return (object)duk_require_string(_ctx, i);
+                return duk_require_string(_ctx, i);
             else if (t == typeof(uint))
-                return (object)duk_require_uint(_ctx, i);
+                return duk_require_uint(_ctx, i);
             else
                 throw new NotImplementedException("No support for custom types.");
         }
@@ -79,15 +91,15 @@ namespace Scissors
             switch(t)
             {
                 case JSType.Boolean:
-                    return (object)duk_get_boolean(_ctx, i);
+                    return duk_get_boolean(_ctx, i);
                 case JSType.Null:
                     return null;
                 case JSType.Number:
-                    return (object)duk_get_number(_ctx, i);
+                    return duk_get_number(_ctx, i);
                 case JSType.String:
-                    return (object)duk_get_string(_ctx, i);
+                    return duk_get_string(_ctx, i);
                 default:
-                    throw new NotImplementedException("JS type not supported");
+                    throw new NotImplementedException("JS type \{t} not supported.");
             }
         }
 
@@ -122,27 +134,34 @@ namespace Scissors
         {
             return new CFunction((IntPtr ctx) =>
             {
-                // Args are pushed onto the stack in reverse
                 var args = method.Method.GetParameters();
+
+                // params is always the last arg, it will have this attribute
                 bool varArgs = args[args.Length - 1].GetCustomAttributes(
                     typeof(ParamArrayAttribute), false).Length > 0;
+
                 int n = args.Length;
+
+                // Gets number of args passed, if vararg then this is on the
+                // stack otherwise assume they called it right
                 int varC = varArgs ? duk_get_top(_ctx) : n;
+
                 object[] callArgs = new object[n];
 
+                // Loop over C# parameters
                 for (int i = 0; i < args.Length; i++)
                 {
-                    // If the last arg in a params method then vararg
-                    if(varArgs && (i+1 == args.Length))
+                    // If the last arg in a params method then loop over the
+                    // remaining JS parameters
+                    if (varArgs && (i + 1 == args.Length))
                     {
                         object[] pArr = new object[varC - i];
-                        int argN = i;
                         for (int j = 0; j < pArr.Length; j++)
                         {
                             pArr[j] = MarshalArgument(i);
                             i++;
                         }
-                        callArgs[argN] = pArr;
+                        callArgs[args.Length - 1] = pArr;
                     }
                     else
                         callArgs[i] = MarshalArgument(args[i].ParameterType,
