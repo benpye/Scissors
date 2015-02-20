@@ -19,7 +19,7 @@ namespace Scissors
 
         public override string ToString()
         {
-            return "\{GetType().FullName}: [\{Code}] \{Message}";
+            return $"{GetType().FullName}: [{Code}] {Message}";
         }
     }
 }

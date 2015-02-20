@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Scissors;
-using Scissors.NativeMethods;
+using static Scissors.NativeMethods;
 using System.Runtime.InteropServices;
 
 namespace Scissors.Hello

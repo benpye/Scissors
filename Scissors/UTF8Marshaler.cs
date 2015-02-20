@@ -30,7 +30,7 @@ namespace Scissors
             if (ManagedObj == null)
                 return IntPtr.Zero;
             else if (!(ManagedObj is string))
-                throw new MarshalDirectiveException("\{nameof(UTF8Marshaler)} must be used on a string.");
+                throw new MarshalDirectiveException($"{nameof(UTF8Marshaler)} must be used on a string.");
 
             return MarshalHelper.StringToNative(ManagedObj as string);
         }

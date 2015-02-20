@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-using Scissors.NativeMethods;
+using static Scissors.NativeMethods;
 
 namespace Scissors
 {
@@ -99,7 +99,7 @@ namespace Scissors
                 case JSType.String:
                     return duk_get_string(_ctx, i);
                 default:
-                    throw new NotImplementedException("JS type \{t} not supported.");
+                    throw new NotImplementedException($"JS type {t} not supported.");
             }
         }
 
